@@ -96,7 +96,8 @@ The script can generate the following visualizations:
 4. Viewing Pattern by Hour of Day
 5. Monthly Watch Statistics
 6. Video Popularity Distribution
-7. Summary Dashboard
+7. Quarterly Watch Time Trend
+8. Summary Dashboard
 
 To generate visualizations, use the `--plot` option:
 
@@ -113,7 +114,7 @@ The script calculates and displays the following statistics:
 - Total videos watched
 - Unique videos watched
 - Unique channels watched
-- Total watch time
+- Total watch time (in both formatted duration and hours)
 - Average video length
 - Video length distribution
 - Top 10 most watched channels

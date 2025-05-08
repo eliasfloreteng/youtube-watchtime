@@ -464,6 +464,9 @@ class YouTubeWatchTimeCalculator:
         # Watch time statistics
         total_seconds = df_combined["duration"].sum()
         stats["total_watch_time_seconds"] = int(total_seconds)
+        stats["total_watch_time_hours"] = round(
+            total_seconds / 3600, 2
+        )  # Convert to hours
         stats["total_watch_time_formatted"] = self.format_duration(total_seconds)
 
         if len(df_combined) > 0:
@@ -546,6 +549,32 @@ class YouTubeWatchTimeCalculator:
                 month["watch_time_formatted"] = self.format_duration(
                     month["total_seconds"]
                 )
+
+            # Quarter distribution
+            df_combined["quarter"] = (
+                df_combined["watched_at"].dt.to_period("Q").astype(str)
+            )
+            quarterly_stats = (
+                df_combined.groupby("quarter")
+                .agg({"video_id": "count", "duration": "sum"})
+                .sort_index()
+                # Include all quarters in the history
+            )
+
+            stats["quarterly_stats"] = (
+                quarterly_stats.reset_index()
+                .rename(
+                    columns={"video_id": "watch_count", "duration": "total_seconds"}
+                )
+                .to_dict("records")
+            )
+
+            # Add formatted watch time
+            for quarter in stats["quarterly_stats"]:
+                quarter["watch_time_formatted"] = self.format_duration(
+                    quarter["total_seconds"]
+                )
+                quarter["watch_time_hours"] = round(quarter["total_seconds"] / 3600, 2)
 
         # Video view statistics (if available)
         if "view_count" in df_combined.columns and df_combined["view_count"].sum() > 0:
@@ -880,7 +909,40 @@ class YouTubeWatchTimeCalculator:
             plt.close()
             print(f"Saved plot: popularity_distribution.png")
 
-        # 7. Summary Dashboard
+        # 7. Quarterly Trend
+        if "quarterly_stats" in stats and stats["quarterly_stats"]:
+            plt.figure(figsize=(14, 10))
+
+            # Extract data from quarterly stats
+            quarters = [quarter["quarter"] for quarter in stats["quarterly_stats"]]
+            watch_times = [
+                quarter["watch_time_hours"] for quarter in stats["quarterly_stats"]
+            ]
+
+            # Sort quarters chronologically
+            sorted_quarters = quarters
+            sorted_hours = watch_times
+
+            # Plot quarterly trend
+            plt.figure(figsize=(14, 8))
+            ax = sns.barplot(x=sorted_quarters, y=sorted_hours, palette="viridis")
+            plt.title("Quarterly Watch Time Trend", fontsize=16)
+            plt.xlabel("Quarter")
+            plt.ylabel("Hours Watched")
+            plt.xticks(rotation=45)
+
+            # Add hour labels
+            for i, hours in enumerate(sorted_hours):
+                ax.text(
+                    i, hours + (max(sorted_hours) * 0.01), f"{hours:.1f}", ha="center"
+                )
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "quarterly_trend.png"))
+            plt.close()
+            print(f"Saved plot: quarterly_trend.png")
+
+        # 8. Summary Dashboard
         plt.figure(figsize=(16, 12))
 
         # Create a 2x3 grid for the summary plots
@@ -1020,7 +1082,10 @@ class YouTubeWatchTimeCalculator:
         print(f"Unique channels watched: {stats['unique_channels']:,}")
 
         # Watch time
-        print(f"\nTotal watch time: {stats['total_watch_time_formatted']}")
+        total_hours = stats["total_watch_time_seconds"] / 3600
+        print(
+            f"\nTotal watch time: {stats['total_watch_time_formatted']} ({total_hours:.2f} hours)"
+        )
         print(
             f"Average video length: {stats.get('average_video_length_formatted', 'N/A')}"
         )
