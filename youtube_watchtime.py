@@ -10,7 +10,6 @@ import json
 import os
 import re
 import sqlite3
-import datetime
 import time
 from urllib.parse import parse_qs, urlparse
 from dotenv import load_dotenv
@@ -716,7 +715,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "video_length_distribution.png"))
             plt.close()
-            print(f"Saved plot: video_length_distribution.png")
+            print("Saved plot: video_length_distribution.png")
 
         # 2. Top Watched Channels
         if "top_channels" in stats and stats["top_channels"]:
@@ -759,7 +758,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "top_channels.png"))
             plt.close()
-            print(f"Saved plot: top_channels.png")
+            print("Saved plot: top_channels.png")
 
         # 3. Viewing Pattern by Day of Week
         if "day_of_week_distribution" in stats:
@@ -797,7 +796,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "day_of_week_pattern.png"))
             plt.close()
-            print(f"Saved plot: day_of_week_pattern.png")
+            print("Saved plot: day_of_week_pattern.png")
 
         # 4. Viewing Pattern by Hour of Day
         if "hour_of_day_distribution" in stats:
@@ -826,7 +825,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "hour_of_day_pattern.png"))
             plt.close()
-            print(f"Saved plot: hour_of_day_pattern.png")
+            print("Saved plot: hour_of_day_pattern.png")
 
         # 5. Monthly Watch Statistics
         if "monthly_stats" in stats and stats["monthly_stats"]:
@@ -880,7 +879,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "monthly_stats.png"))
             plt.close()
-            print(f"Saved plot: monthly_stats.png")
+            print("Saved plot: monthly_stats.png")
 
         # 6. Video Popularity Distribution
         if "popularity_distribution" in stats:
@@ -907,7 +906,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "popularity_distribution.png"))
             plt.close()
-            print(f"Saved plot: popularity_distribution.png")
+            print("Saved plot: popularity_distribution.png")
 
         # 7. Quarterly Trend
         if "quarterly_stats" in stats and stats["quarterly_stats"]:
@@ -940,7 +939,7 @@ class YouTubeWatchTimeCalculator:
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "quarterly_trend.png"))
             plt.close()
-            print(f"Saved plot: quarterly_trend.png")
+            print("Saved plot: quarterly_trend.png")
 
         # 8. Summary Dashboard
         plt.figure(figsize=(16, 12))
@@ -1060,7 +1059,7 @@ class YouTubeWatchTimeCalculator:
         plt.tight_layout(rect=[0, 0, 1, 0.97])  # Adjust for the suptitle
         plt.savefig(os.path.join(output_dir, "dashboard.png"))
         plt.close()
-        print(f"Saved plot: dashboard.png")
+        print("Saved plot: dashboard.png")
 
         print(f"\nAll plots have been saved to: {output_dir}")
         return output_dir
