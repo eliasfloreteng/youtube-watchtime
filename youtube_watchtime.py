@@ -732,7 +732,7 @@ class YouTubeWatchTimeCalculator:
             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 16))
 
             # Plot watch counts
-            bars1 = sns.barplot(x=watch_counts, y=channels, ax=ax1, palette="viridis")
+            _bars1 = sns.barplot(x=watch_counts, y=channels, ax=ax1, palette="viridis")
             ax1.set_title("Top 10 Channels by Watch Count", fontsize=16)
             ax1.set_xlabel("Number of Videos Watched")
             ax1.set_ylabel("Channel")
@@ -744,7 +744,7 @@ class YouTubeWatchTimeCalculator:
                 )
 
             # Plot watch times
-            bars2 = sns.barplot(x=watch_times, y=channels, ax=ax2, palette="viridis")
+            _bars2 = sns.barplot(x=watch_times, y=channels, ax=ax2, palette="viridis")
             ax2.set_title("Top 10 Channels by Watch Time (Hours)", fontsize=16)
             ax2.set_xlabel("Hours Watched")
             ax2.set_ylabel("Channel")
