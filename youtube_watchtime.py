@@ -20,6 +20,8 @@ import isodate
 import pandas as pd
 from tqdm import tqdm
 import argparse
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Load environment variables
 load_dotenv()
@@ -636,6 +638,371 @@ class YouTubeWatchTimeCalculator:
         conn.close()
         print(f"Data exported to CSV files in '{output_dir}' directory.")
 
+    def generate_plots(self, stats, output_dir="youtube_stats/plots"):
+        """
+        Generate visualizations of the statistics.
+
+        Args:
+            stats (dict): Statistics dictionary
+            output_dir (str): Directory to save the plots
+        """
+        # Create output directory if it doesn't exist
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Set the style for the plots
+        sns.set(style="darkgrid")
+        plt.rcParams.update({"font.size": 12})
+
+        # 1. Video Length Distribution
+        if "video_length_distribution" in stats:
+            plt.figure(figsize=(12, 8))
+            categories = list(stats["video_length_distribution"].keys())
+            counts = list(stats["video_length_distribution"].values())
+
+            # Sort by video length category
+            order = [
+                "Short (< 5 min)",
+                "Medium (5-20 min)",
+                "Long (20-60 min)",
+                "Very Long (> 60 min)",
+            ]
+            sorted_data = [
+                (cat, stats["video_length_distribution"].get(cat, 0))
+                for cat in order
+                if cat in stats["video_length_distribution"]
+            ]
+            categories, counts = zip(*sorted_data) if sorted_data else ([], [])
+
+            ax = sns.barplot(x=list(categories), y=list(counts))
+            plt.title("Video Length Distribution", fontsize=16)
+            plt.xlabel("Video Length Category")
+            plt.ylabel("Number of Videos")
+            plt.xticks(rotation=45)
+
+            # Add count labels on top of bars
+            for i, count in enumerate(counts):
+                ax.text(i, count + (max(counts) * 0.01), f"{count:,}", ha="center")
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "video_length_distribution.png"))
+            plt.close()
+            print(f"Saved plot: video_length_distribution.png")
+
+        # 2. Top Watched Channels
+        if "top_channels" in stats and stats["top_channels"]:
+            plt.figure(figsize=(14, 10))
+
+            # Extract data for top 10 channels
+            channels = [channel["name"] for channel in stats["top_channels"]]
+            watch_counts = [channel["watch_count"] for channel in stats["top_channels"]]
+            watch_times = [
+                channel["total_seconds"] / 3600 for channel in stats["top_channels"]
+            ]  # Convert to hours
+
+            # Create a figure with two subplots
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 16))
+
+            # Plot watch counts
+            bars1 = sns.barplot(x=watch_counts, y=channels, ax=ax1, palette="viridis")
+            ax1.set_title("Top 10 Channels by Watch Count", fontsize=16)
+            ax1.set_xlabel("Number of Videos Watched")
+            ax1.set_ylabel("Channel")
+
+            # Add count labels
+            for i, count in enumerate(watch_counts):
+                ax1.text(
+                    count + (max(watch_counts) * 0.01), i, f"{count:,}", va="center"
+                )
+
+            # Plot watch times
+            bars2 = sns.barplot(x=watch_times, y=channels, ax=ax2, palette="viridis")
+            ax2.set_title("Top 10 Channels by Watch Time (Hours)", fontsize=16)
+            ax2.set_xlabel("Hours Watched")
+            ax2.set_ylabel("Channel")
+
+            # Add time labels
+            for i, hours in enumerate(watch_times):
+                ax2.text(
+                    hours + (max(watch_times) * 0.01), i, f"{hours:.1f}", va="center"
+                )
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "top_channels.png"))
+            plt.close()
+            print(f"Saved plot: top_channels.png")
+
+        # 3. Viewing Pattern by Day of Week
+        if "day_of_week_distribution" in stats:
+            plt.figure(figsize=(12, 8))
+
+            days_order = [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday",
+            ]
+            days_data = {
+                day: stats["day_of_week_distribution"].get(day, 0) for day in days_order
+            }
+
+            ax = sns.barplot(
+                x=list(days_data.keys()), y=list(days_data.values()), palette="viridis"
+            )
+            plt.title("Viewing Pattern by Day of Week", fontsize=16)
+            plt.xlabel("Day of Week")
+            plt.ylabel("Number of Videos Watched")
+
+            # Add count labels
+            for i, count in enumerate(days_data.values()):
+                ax.text(
+                    i,
+                    count + (max(days_data.values()) * 0.01),
+                    f"{count:,}",
+                    ha="center",
+                )
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "day_of_week_pattern.png"))
+            plt.close()
+            print(f"Saved plot: day_of_week_pattern.png")
+
+        # 4. Viewing Pattern by Hour of Day
+        if "hour_of_day_distribution" in stats:
+            plt.figure(figsize=(14, 8))
+
+            hours = list(range(24))
+            counts = [stats["hour_of_day_distribution"].get(hour, 0) for hour in hours]
+
+            ax = sns.barplot(x=hours, y=counts, palette="viridis")
+            plt.title("Viewing Pattern by Hour of Day", fontsize=16)
+            plt.xlabel("Hour of Day")
+            plt.ylabel("Number of Videos Watched")
+            plt.xticks(range(0, 24, 2), [f"{h:02d}:00" for h in range(0, 24, 2)])
+
+            # Add count labels for hours with significant views
+            for i, count in enumerate(counts):
+                if count > max(counts) * 0.1:  # Only label bars with significant height
+                    ax.text(
+                        i,
+                        count + (max(counts) * 0.01),
+                        f"{count:,}",
+                        ha="center",
+                        fontsize=9,
+                    )
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "hour_of_day_pattern.png"))
+            plt.close()
+            print(f"Saved plot: hour_of_day_pattern.png")
+
+        # 5. Monthly Watch Statistics
+        if "monthly_stats" in stats and stats["monthly_stats"]:
+            plt.figure(figsize=(14, 8))
+
+            months = [month["month_year"] for month in stats["monthly_stats"]]
+            watch_counts = [month["watch_count"] for month in stats["monthly_stats"]]
+            watch_times = [
+                month["total_seconds"] / 3600 for month in stats["monthly_stats"]
+            ]  # Convert to hours
+
+            # Create a figure with two subplots
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 16))
+
+            # Plot watch counts
+            bars1 = sns.barplot(x=months, y=watch_counts, ax=ax1, palette="viridis")
+            ax1.set_title("Monthly Watch Count (Last 12 Months)", fontsize=16)
+            ax1.set_xlabel("Month")
+            ax1.set_ylabel("Number of Videos Watched")
+            ax1.set_xticklabels(months, rotation=45)
+
+            # Add count labels
+            for i, count in enumerate(watch_counts):
+                if count > max(watch_counts) * 0.05:  # Only label significant bars
+                    ax1.text(
+                        i,
+                        count + (max(watch_counts) * 0.01),
+                        f"{count:,}",
+                        ha="center",
+                        fontsize=9,
+                    )
+
+            # Plot watch times
+            bars2 = sns.barplot(x=months, y=watch_times, ax=ax2, palette="viridis")
+            ax2.set_title("Monthly Watch Time in Hours (Last 12 Months)", fontsize=16)
+            ax2.set_xlabel("Month")
+            ax2.set_ylabel("Hours Watched")
+            ax2.set_xticklabels(months, rotation=45)
+
+            # Add time labels
+            for i, hours in enumerate(watch_times):
+                if hours > max(watch_times) * 0.05:  # Only label significant bars
+                    ax2.text(
+                        i,
+                        hours + (max(watch_times) * 0.01),
+                        f"{hours:.1f}",
+                        ha="center",
+                        fontsize=9,
+                    )
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "monthly_stats.png"))
+            plt.close()
+            print(f"Saved plot: monthly_stats.png")
+
+        # 6. Video Popularity Distribution
+        if "popularity_distribution" in stats:
+            plt.figure(figsize=(12, 8))
+
+            # Sort by view count category
+            order = ["< 1K", "1K-10K", "10K-100K", "100K-1M", "> 1M"]
+            sorted_data = [
+                (cat, stats["popularity_distribution"].get(cat, 0))
+                for cat in order
+                if cat in stats["popularity_distribution"]
+            ]
+            categories, counts = zip(*sorted_data) if sorted_data else ([], [])
+
+            ax = sns.barplot(x=list(categories), y=list(counts), palette="viridis")
+            plt.title("Video Popularity Distribution (by View Count)", fontsize=16)
+            plt.xlabel("View Count Category")
+            plt.ylabel("Number of Videos")
+
+            # Add count labels
+            for i, count in enumerate(counts):
+                ax.text(i, count + (max(counts) * 0.01), f"{count:,}", ha="center")
+
+            plt.tight_layout()
+            plt.savefig(os.path.join(output_dir, "popularity_distribution.png"))
+            plt.close()
+            print(f"Saved plot: popularity_distribution.png")
+
+        # 7. Summary Dashboard
+        plt.figure(figsize=(16, 12))
+
+        # Create a 2x3 grid for the summary plots
+        fig, axs = plt.subplots(2, 3, figsize=(18, 12))
+
+        # 1. Video Length Distribution (top left)
+        if "video_length_distribution" in stats:
+            order = [
+                "Short (< 5 min)",
+                "Medium (5-20 min)",
+                "Long (20-60 min)",
+                "Very Long (> 60 min)",
+            ]
+            sorted_data = [
+                (cat, stats["video_length_distribution"].get(cat, 0))
+                for cat in order
+                if cat in stats["video_length_distribution"]
+            ]
+            categories, counts = zip(*sorted_data) if sorted_data else ([], [])
+
+            sns.barplot(
+                x=list(categories), y=list(counts), ax=axs[0, 0], palette="viridis"
+            )
+            axs[0, 0].set_title("Video Length Distribution")
+            axs[0, 0].set_xlabel("Video Length")
+            axs[0, 0].set_ylabel("Count")
+            axs[0, 0].set_xticklabels(categories, rotation=45, fontsize=8)
+
+        # 2. Top 5 Channels (top middle)
+        if "top_channels" in stats and len(stats["top_channels"]) > 0:
+            top_5_channels = stats["top_channels"][:5]
+            channels = [channel["name"] for channel in top_5_channels]
+            watch_counts = [channel["watch_count"] for channel in top_5_channels]
+
+            sns.barplot(x=watch_counts, y=channels, ax=axs[0, 1], palette="viridis")
+            axs[0, 1].set_title("Top 5 Channels")
+            axs[0, 1].set_xlabel("Videos Watched")
+            axs[0, 1].set_ylabel("Channel")
+
+        # 3. Day of Week (top right)
+        if "day_of_week_distribution" in stats:
+            days_order = [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday",
+            ]
+            days_data = {
+                day: stats["day_of_week_distribution"].get(day, 0) for day in days_order
+            }
+
+            sns.barplot(
+                x=list(days_data.keys()),
+                y=list(days_data.values()),
+                ax=axs[0, 2],
+                palette="viridis",
+            )
+            axs[0, 2].set_title("Viewing by Day of Week")
+            axs[0, 2].set_xlabel("Day")
+            axs[0, 2].set_ylabel("Count")
+            axs[0, 2].set_xticklabels(days_data.keys(), rotation=45, fontsize=8)
+
+        # 4. Hour of Day (bottom left)
+        if "hour_of_day_distribution" in stats:
+            hours = list(range(24))
+            counts = [stats["hour_of_day_distribution"].get(hour, 0) for hour in hours]
+
+            sns.barplot(x=hours, y=counts, ax=axs[1, 0], palette="viridis")
+            axs[1, 0].set_title("Viewing by Hour of Day")
+            axs[1, 0].set_xlabel("Hour")
+            axs[1, 0].set_ylabel("Count")
+            axs[1, 0].set_xticks(range(0, 24, 3))
+            axs[1, 0].set_xticklabels(
+                [f"{h:02d}:00" for h in range(0, 24, 3)], fontsize=8
+            )
+
+        # 5. Monthly Trend (bottom middle)
+        if "monthly_stats" in stats and stats["monthly_stats"]:
+            months = [month["month_year"] for month in stats["monthly_stats"]]
+            watch_counts = [month["watch_count"] for month in stats["monthly_stats"]]
+
+            sns.barplot(x=months, y=watch_counts, ax=axs[1, 1], palette="viridis")
+            axs[1, 1].set_title("Monthly Trend")
+            axs[1, 1].set_xlabel("Month")
+            axs[1, 1].set_ylabel("Videos Watched")
+            axs[1, 1].set_xticklabels(months, rotation=45, fontsize=8)
+
+        # 6. Popularity Distribution (bottom right)
+        if "popularity_distribution" in stats:
+            order = ["< 1K", "1K-10K", "10K-100K", "100K-1M", "> 1M"]
+            sorted_data = [
+                (cat, stats["popularity_distribution"].get(cat, 0))
+                for cat in order
+                if cat in stats["popularity_distribution"]
+            ]
+            categories, counts = zip(*sorted_data) if sorted_data else ([], [])
+
+            sns.barplot(
+                x=list(categories), y=list(counts), ax=axs[1, 2], palette="viridis"
+            )
+            axs[1, 2].set_title("Video Popularity")
+            axs[1, 2].set_xlabel("View Count")
+            axs[1, 2].set_ylabel("Count")
+            axs[1, 2].set_xticklabels(categories, rotation=45, fontsize=8)
+
+        # Add a title to the entire figure
+        fig.suptitle(
+            f"YouTube Watch Statistics Dashboard\nTotal: {stats['total_videos']:,} videos, {stats['total_watch_time_formatted']}",
+            fontsize=20,
+        )
+
+        plt.tight_layout(rect=[0, 0, 1, 0.97])  # Adjust for the suptitle
+        plt.savefig(os.path.join(output_dir, "dashboard.png"))
+        plt.close()
+        print(f"Saved plot: dashboard.png")
+
+        print(f"\nAll plots have been saved to: {output_dir}")
+        return output_dir
+
     def display_statistics(self, stats):
         """
         Display the calculated statistics in a user-friendly format.
@@ -741,6 +1108,11 @@ def main():
         default=50,
         help="Batch size for API requests (max 50)",
     )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Generate visualizations of the statistics",
+    )
 
     args = parser.parse_args()
 
@@ -759,6 +1131,10 @@ def main():
 
     if args.export:
         calculator.export_to_csv()
+
+    if args.plot:
+        plots_dir = calculator.generate_plots(stats)
+        print(f"\nTo view the plots, open the files in the '{plots_dir}' directory.")
 
 
 if __name__ == "__main__":
