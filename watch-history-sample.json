@@ -1,0 +1,34 @@
+[{
+  "header": "YouTube",
+  "title": "Watched Grannen Måns - Godislåten (Officiell Musikvideo)",
+  "titleUrl": "https://www.youtube.com/watch?v\u003dFH2e1NC961M",
+  "subtitles": [{
+    "name": "TADROS",
+    "url": "https://www.youtube.com/channel/UCgmY0snVujmEpHcGUf_0eCQ"
+  }],
+  "time": "2025-05-02T13:00:37.152Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history"]
+},{
+  "header": "YouTube",
+  "title": "Watched INTIM - 15 svenska hits på 5 minuter (cover musikvideo)",
+  "titleUrl": "https://www.youtube.com/watch?v\u003dgmYL6aPdhzA",
+  "subtitles": [{
+    "name": "iNTIM",
+    "url": "https://www.youtube.com/channel/UCHDt4Q1J5EMSHQUX0C139WQ"
+  }],
+  "time": "2025-05-01T13:34:48.744Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history"]
+},{
+  "header": "YouTube",
+  "title": "Watched Elov \u0026 Beny, Sofie Svensson \u0026 Dom Där - BUBBEL PÅ BALKONGEN",
+  "titleUrl": "https://www.youtube.com/watch?v\u003dIIkDBvpz-40",
+  "subtitles": [{
+    "name": "Elov \u0026 Beny",
+    "url": "https://www.youtube.com/channel/UCr3iM4b0s8FjaQX2f6AXYLQ"
+  }],
+  "time": "2025-05-01T13:31:02.472Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history"]
+}]
